@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from app.app import ChatRequest
 from app.graphs.cn.cn_graph import cn_graph
 
 
@@ -29,4 +30,16 @@ def test_node(
 
     })
 
+    return result
+@app.post("/chat")
+def chat(request: ChatRequest):
+
+    result = cn_graph.invoke({
+        "user_query": request.user_query,
+        "intent": "",
+        "retrieved_context": "",
+        "response": "",
+        "next_node": "",
+        "history": []
+    })
     return result
