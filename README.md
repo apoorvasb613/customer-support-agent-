@@ -1,5 +1,4 @@
-# customer-support-agent-
-![alt text](flowdiag.drawio.png)
+
 # LangGraph Customer Support Agent — Code Walkthrough
 
 A simple AI customer support agent built using **LangGraph**. It detects user intent, retrieves relevant context, and generates a response using an LLM.
@@ -30,6 +29,9 @@ app/
 ├── tools.py          # Helper functions (e.g., fetch order status)
 └── dummy_data.py     # Fake FAQ and order data for testing
 ```
+# customer-support-agent-
+
+![alt text](flowdiag.drawio.png)
 
 ---
 
@@ -52,14 +54,6 @@ class GraphState(TypedDict):
 - Think of it like a **clipboard** — each node reads from it and writes back to it.
 - Every field has a clear role:
 
-| Field | What it holds |
-|---|---|
-| `user_query` | The raw message from the user |
-| `intent` | What the user wants — `"faq"`, `"order"`, or `"unknown"` |
-| `retrieved_context` | The answer found from FAQ or order lookup |
-| `response` | The final LLM-generated reply sent back to the user |
-| `next_node` | Which node to run next (used for routing) |
-| `history` | List of previous messages in the conversation |
 
 ---
 
@@ -209,10 +203,9 @@ def get_order_status(order_id: str):
 ```
 
 ### What this does
-- A simple helper function called by `order_lookup_node`.
+
 - Looks up an order ID in the `ORDERS` dictionary (dummy data).
-- Returns the order's `status` if found, or `"Order not found"` if not.
-- Keeping this in a separate `tools.py` file is a clean pattern — tools can later be swapped for real API calls without touching the node logic.
+
 
 ---
 
@@ -222,42 +215,64 @@ def get_order_status(order_id: str):
 User: "Where is my order 1023?"
         │
         ▼
-  intent_node          → detects "order" → sets intent = "order"
+  intent_node          
         │
         ▼
-  route_intent         → intent is "order" → routes to order_lookup_node
+  route_intent         
         │
         ▼
-  order_lookup_node    → finds "1023" in query → calls get_order_status("1023")
-                       → sets retrieved_context = "Order 1023 status is Shipped"
+  order_lookup_node    
+                       
         │
         ▼
-  response_node        → builds prompt with query + context → calls LLM
-                       → sets response = "Your order 1023 has been shipped..."
+  response_node        
+                       
         │
         ▼
   Final response returned to user
 ```
 
 ---
+# API Tests — Customer Support Agent
 
-## Key Concepts Used
-
-| Concept | What it means here |
-|---|---|
-| **Node** | A single step in the graph — one function, one job |
-| **Edge** | The connection between nodes — can be fixed or conditional |
-| **Conditional Edge** | A router function that decides the next node dynamically |
-| **State** | A shared dictionary passed through every node |
-| **TypedDict** | Python typing that makes the state fields explicit and safe |
+Basic integration tests for the `/chat` endpoint using **pytest** and **FastAPI's test client**.
 
 ---
 
-## Quick Summary
+## What's Being Tested
 
-| File | Role |
+Three scenarios are covered:
+
+| Query | Expected in response |
 |---|---|
-| `state.py` | Defines the shared data structure passed between all nodes |
-| `nodes.py` | Contains the logic for each step — intent, retrieval, order lookup, response |
-| `edges.py` | Routes the flow based on detected intent |
-| `tools.py` | Helper functions that nodes can call — e.g., order status lookup |
+| `"what is refund policy"` | `"30 days"` |
+| `"where is my order 101"` | `"shipped"` |
+| `"hello"` | `"assist"` |
+
+Each test hits the `/chat` endpoint with a real POST request and checks that the response body contains the expected keyword.
+
+---
+
+## How to Run
+
+```bash
+pytest tests/test_chat.py -v
+```
+
+---
+
+## How It Works
+
+```python
+client.post("/chat", json={"user_query": "what is refund policy"})
+```
+
+- Spins up the FastAPI app locally using `TestClient` — no server needed.
+- Sends a POST request with a `user_query`.
+- Asserts the response is `200` and the reply contains the right keyword.
+
+Tests are parameterized, so adding a new case is just adding a dict to `TEST_CASES`.
+
+---
+
+
