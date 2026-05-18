@@ -274,5 +274,7 @@ client.post("/chat", json={"user_query": "what is refund policy"})
 Tests are parameterized, so adding a new case is just adding a dict to `TEST_CASES`.
 
 ---
+## result:
+![alt text](test.png)
 
 
