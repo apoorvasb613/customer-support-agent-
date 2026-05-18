@@ -59,10 +59,6 @@ class GraphState(TypedDict):
 
 ## 2. Nodes — `nodes.py`
 
-Nodes are the **individual steps** in the graph. Each node receives the state, does one job, and returns the updated state.
-
----
-
 ### Node 1 — Intent Detection
 
 ```python
@@ -83,7 +79,7 @@ def intent_node(state):
   - User says `"refund"` → intent = `"faq"`
   - User says `"order"` → intent = `"order"`
   - Anything else → intent = `"unknown"`
-- This intent is used by the router (edges) to decide where to go next.
+
 
 ---
 
@@ -99,8 +95,8 @@ def retrieval_node(state):
 ```
 
 **What this does**
-- Triggered when intent is `"faq"` (e.g., refund questions).
-- Loops through `FAQ_DATA` (a dictionary of common questions and answers).
+- Triggered when intent is `"faq"` 
+- Loops through `FAQ_DATA` 
 - If a keyword from FAQ_DATA matches the query, it stores the answer in `retrieved_context`.
 - This context is later passed to the LLM to help generate an accurate answer.
 
@@ -160,7 +156,6 @@ def response_node(state):
 - Builds a prompt using the user's original query and whatever context was retrieved.
 - Calls `ask_llm()` to get a response from the LLM.
 - Stores the LLM's reply in `state["response"]`.
-- The `state.get('retrieved_context', '')` safely returns an empty string if no context was found (e.g., for `"unknown"` intent).
 
 ---
 
@@ -186,7 +181,6 @@ def route_intent(state):
 | `"order"` | `order_lookup_node` |
 | `"unknown"` | `response_node` (directly, no lookup) |
 
-- In LangGraph, this function is used as a **conditional edge** — it dynamically routes the flow instead of following a fixed path.
 
 ---
 
@@ -271,7 +265,7 @@ client.post("/chat", json={"user_query": "what is refund policy"})
 - Sends a POST request with a `user_query`.
 - Asserts the response is `200` and the reply contains the right keyword.
 
-Tests are parameterized, so adding a new case is just adding a dict to `TEST_CASES`.
+
 
 ---
 ## result:
